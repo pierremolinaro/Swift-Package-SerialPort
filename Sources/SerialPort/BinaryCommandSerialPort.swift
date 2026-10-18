@@ -15,7 +15,7 @@ open class BinaryCommandSerialPort <SEND_CODE : BinarySendCodeProtocol,
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  private let mBinarySerialFormatManager = Mutex <BinarySerialFormat <SEND_CODE, RECEIVE_CODE>> (BinarySerialFormat ())
+  private let mBinarySerialFormatManager = Mutex <BinarySerialReceiver <RECEIVE_CODE>> (BinarySerialReceiver ())
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -28,30 +28,30 @@ open class BinaryCommandSerialPort <SEND_CODE : BinarySendCodeProtocol,
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   public nonisolated func send (command inCommand : SEND_CODE) {
-    self.sendData (self.mBinarySerialFormatManager.withLock { $0.data (forCommand: inCommand) })
+    self.sendData (BinarySerialFormatter.data (forCommand: inCommand))
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   public nonisolated func send (encodedU64 inValue : UInt64) {
-    self.sendData (self.mBinarySerialFormatManager.withLock { $0.data (forEncodedU64: inValue) })
+    self.sendData (BinarySerialFormatter.data (forU64: inValue))
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   public nonisolated func send (encodedString inValue : String) {
-    self.sendData (self.mBinarySerialFormatManager.withLock { $0.data (forEncodedString: inValue) })
+    self.sendData (BinarySerialFormatter.data (forString: inValue))
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //MARK: Receive
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  @ObservationIgnored private var mReceiveCallBack : Optional < @MainActor (_ inCommand : Command <RECEIVE_CODE>) -> Void > = nil
+  @ObservationIgnored private var mReceiveCallBack : Optional < @MainActor (_ inCommand : BinarySerialCommand <RECEIVE_CODE>) -> Void > = nil
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  public func setReceiveCallBack (_ inReceiveCallBack : Optional < @MainActor (_ inCommand : Command <RECEIVE_CODE>) -> Void >) {
+  public func setReceiveCallBack (_ inReceiveCallBack : Optional < @MainActor (_ inCommand : BinarySerialCommand <RECEIVE_CODE>) -> Void >) {
     self.mReceiveCallBack = inReceiveCallBack
   }
 
@@ -63,7 +63,7 @@ open class BinaryCommandSerialPort <SEND_CODE : BinarySendCodeProtocol,
 //      s += " \(String (byte, radix: 16, uppercase: true))"
 //    }
 //    Swift.print ("Received[\(inData.count)]:\(s)")
-    var commands = [Command <RECEIVE_CODE>] ()
+    var commands = [BinarySerialCommand <RECEIVE_CODE>] ()
     self.reportReceivingState (inData.count)
     self.mBinarySerialFormatManager.withLock { $0.handleReceivedData (inData, &commands) }
     for command in commands {

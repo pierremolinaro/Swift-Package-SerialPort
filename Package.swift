@@ -15,7 +15,7 @@ let package = Package (
   dependencies: [
     .package (
       url: "https://github.com/pierremolinaro/Swift-Package-BinarySerialFormat",
-      revision: "a596b4338a59e8b0a32dcf66eba611bc0ceef48d"
+      revision: "a6c94e5813c1d02cbf70215327bf8941075031c3"
     )
   ],
   targets: [
