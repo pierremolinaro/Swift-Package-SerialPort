@@ -12,9 +12,21 @@ let package = Package (
   products: [
     .library (name: "SerialPort", targets: ["SerialPort"])
   ],
+  dependencies: [
+    .package (
+      url: "https://github.com/pierremolinaro/Swift-Package-BinarySerialFormat",
+      revision: "a596b4338a59e8b0a32dcf66eba611bc0ceef48d"
+    )
+  ],
   targets: [
-    .target (name: "SerialPort")
-  ]
+    .target (
+      name: "SerialPort",
+      dependencies: [
+        .product (name: "BinarySerialFormat", package: "Swift-Package-BinarySerialFormat")
+      ]
+    )
+  ],
+  swiftLanguageModes: [.v6]
 )
 
 //--------------------------------------------------------------------------------------------------
